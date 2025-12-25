@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { generateQuestions } from "@/lib/ai/question-generator";
 
 export async function createJob(formData: FormData) {
   const title = formData.get("title")?.toString().trim();
@@ -43,4 +44,7 @@ export async function createJob(formData: FormData) {
     console.error("createJob: insert failed", insertError);
     throw new Error("Failed to create job");
   }
+
+  // Trigger question generation based on the job description.
+  await generateQuestions(description);
 }
