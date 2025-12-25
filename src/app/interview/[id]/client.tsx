@@ -77,14 +77,23 @@ export default function InterviewClient({ interview, questions }: Props) {
               >
                 Previous
               </button>
-              <button
-                type="button"
-                onClick={nextQuestion}
-                className="rounded-md border border-slate-800 bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800"
-                disabled={currentQuestionIndex >= questions.length - 1}
-              >
-                Next
-              </button>
+              {currentQuestionIndex < questions.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={nextQuestion}
+                  className="rounded-md border border-slate-800 bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800"
+                  disabled={currentQuestionIndex >= questions.length - 1}
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="rounded-md border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-600"
+                >
+                  Submit
+                </button>
+              )}
             </div>
           </section>
         ) : (
