@@ -1,7 +1,11 @@
 import "server-only";
 import { deepseekClient } from "@/lib/ai/client";
 
-// TODO: Call DeepSeek to generate interview questions based on a job description.
+/**
+ * Server-only helper to generate interview questions via DeepSeek chat model.
+ * Expects the model to return a strict JSON array of { question, difficulty } objects.
+ * Throws on invalid or insufficient responses.
+ */
 export async function generateQuestions(jobDescription: string): Promise<
   { question: string; difficulty: string }[]
 > {
