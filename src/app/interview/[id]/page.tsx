@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import InterviewClient from "./client";
+import { submitInterview } from "./actions";
 
 export type InterviewWithQuestions = {
   id: string;
@@ -37,5 +38,13 @@ export default async function InterviewPage({
     questions: data.questions ?? [],
   };
 
-  return <InterviewClient interview={interview} questions={interview.questions} />;
+  const submitInterviewAction = submitInterview.bind(null, interview.id);
+
+  return (
+    <InterviewClient
+      interview={interview}
+      questions={interview.questions}
+      submitInterviewAction={submitInterviewAction}
+    />
+  );
 }
