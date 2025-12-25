@@ -1,9 +1,17 @@
 -- Enable UUID generation
 create extension if not exists "pgcrypto";
 
--- Enums
-create type if not exists role_enum as enum ('candidate', 'recruiter');
-create type if not exists interview_status_enum as enum ('pending', 'in_progress', 'completed');
+-- Enums (conditional create for PG versions without IF NOT EXISTS on types)
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'role_enum') then
+    create type role_enum as enum ('candidate', 'recruiter');
+  end if;
+
+  if not exists (select 1 from pg_type where typname = 'interview_status_enum') then
+    create type interview_status_enum as enum ('pending', 'in_progress', 'completed');
+  end if;
+end$$;
 
 create table if not exists organizations (
   id uuid primary key default gen_random_uuid(),
@@ -286,4 +294,4 @@ create policy candidates_select_responses on responses
       where i.id = responses.interview_id
         and i.candidate_id = auth.uid()
     )
-  );
+);

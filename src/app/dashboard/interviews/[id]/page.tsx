@@ -26,7 +26,7 @@ export default async function InterviewResultsPage({ params }: { params: { id: s
 
   if (error) {
     console.error("interview results fetch failed", error);
-    throw new Error("Failed to load interview");
+    notFound();
   }
 
   if (!data) {

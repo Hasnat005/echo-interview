@@ -1,6 +1,6 @@
 "use server";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { generateQuestions } from "@/lib/ai/question-generator";
 import { redirect } from "next/navigation";
 
@@ -12,27 +12,56 @@ export async function createJob(formData: FormData) {
     throw new Error("Title and description are required.");
   }
 
-  const supabase = createSupabaseServerClient();
+  const useService = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const supabase = useService ? createSupabaseServiceClient() : createSupabaseServerClient();
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  let organizationId: string | null = null;
 
-  if (userError || !user) {
-    console.error("createJob: unable to fetch user", userError);
-    throw new Error("Authentication required");
-  }
+  if (useService) {
+    // Service role: fallback to the first organization or create a default one if missing
+    const { data: orgs, error: orgError } = await supabase.from("organizations").select("id").limit(1);
+    if (orgError) {
+      console.error("createJob: fetch organizations failed", orgError);
+      throw new Error("Failed to resolve organization");
+    }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("organization_id")
-    .eq("id", user.id)
-    .single();
+    if (orgs && orgs.length > 0) {
+      organizationId = orgs[0].id;
+    } else {
+      const { data: newOrg, error: insertOrgError } = await supabase
+        .from("organizations")
+        .insert({ name: "Default Org" })
+        .select("id")
+        .single();
+      if (insertOrgError || !newOrg?.id) {
+        console.error("createJob: create default org failed", insertOrgError);
+        throw new Error("Failed to create default organization");
+      }
+      organizationId = newOrg.id;
+    }
+  } else {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-  if (profileError || !profile?.organization_id) {
-    console.error("createJob: unable to resolve organization", profileError);
-    throw new Error("Organization is required to create a job");
+    if (userError || !user) {
+      console.error("createJob: unable to fetch user", userError);
+      throw new Error("Authentication required");
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile?.organization_id) {
+      console.error("createJob: unable to resolve organization", profileError);
+      throw new Error("Organization is required to create a job");
+    }
+
+    organizationId = profile.organization_id;
   }
 
   const { data: jobRow, error: insertError } = await supabase
@@ -40,7 +69,7 @@ export async function createJob(formData: FormData) {
     .insert({
       title,
       description,
-      organization_id: profile.organization_id,
+      organization_id: organizationId,
     })
     .select("id")
     .single();

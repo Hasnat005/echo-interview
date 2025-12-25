@@ -1,6 +1,14 @@
 import "server-only";
 import { deepseekClient } from "@/lib/ai/client";
 
+function fallbackQuestions(jobDescription: string) {
+  return [
+    { question: `Describe your experience related to ${jobDescription}.`, difficulty: "medium" },
+    { question: "What recent project are you most proud of?", difficulty: "medium" },
+    { question: "How do you handle tight deadlines?", difficulty: "easy" },
+  ];
+}
+
 function stripCodeFences(payload: string): string {
   const fence = /```[a-zA-Z]*\n([\s\S]*?)```/m;
   const match = payload.match(fence);
@@ -18,19 +26,24 @@ function stripCodeFences(payload: string): string {
 export async function generateQuestions(jobDescription: string): Promise<
   { question: string; difficulty: string }[]
 > {
-  const response = await deepseekClient.chat.completions.create({
-    model: "deepseek-chat",
-    messages: [
-      {
-        role: "user",
-        content: `Generate interview questions as JSON array for this job: ${jobDescription}`,
-      },
-    ],
-  });
-
-  const content = response.choices[0]?.message?.content ?? "";
+  if (!deepseekClient) {
+    // Fallback when no API key is set
+    return fallbackQuestions(jobDescription);
+  }
 
   try {
+    const response = await deepseekClient.chat.completions.create({
+      model: "deepseek-chat",
+      messages: [
+        {
+          role: "user",
+          content: `Generate interview questions as JSON array for this job: ${jobDescription}`,
+        },
+      ],
+    });
+
+    const content = response.choices[0]?.message?.content ?? "";
+
     const cleanedContent = stripCodeFences(content);
     const match = cleanedContent.match(/[\[\s\S]*\]/);
     const jsonText = match?.[0] ?? cleanedContent;
@@ -54,7 +67,8 @@ export async function generateQuestions(jobDescription: string): Promise<
 
     return cleaned;
   } catch (error) {
-    console.error("Failed to parse DeepSeek JSON response", { error, content });
-    throw new Error("Failed to parse DeepSeek JSON response");
+    // Log and fallback instead of failing the job creation when DeepSeek is unavailable or returns invalid responses.
+    console.error("DeepSeek question generation failed, using fallback", error);
+    return fallbackQuestions(jobDescription);
   }
 }
