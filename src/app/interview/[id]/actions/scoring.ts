@@ -93,7 +93,22 @@ export async function scoreInterview(interviewId: string) {
       throw new Error("Failed to persist interview scores");
     }
 
-    // TODO: compute and persist overall score on the interview record
+    if (scored.length === 0) {
+      throw new Error("No scores computed for interview");
+    }
+
+    const total = scored.reduce((sum, item) => sum + item.score, 0);
+    const averageScore = Math.round(total / scored.length);
+
+    const { error: interviewUpdateError } = await supabase
+      .from("interviews")
+      .update({ overall_score: averageScore, status: "completed" })
+      .eq("id", interviewId);
+
+    if (interviewUpdateError) {
+      console.error("scoreInterview: failed to update interview", interviewUpdateError);
+      throw new Error("Failed to update interview score");
+    }
   } catch (error) {
     console.error("scoreInterview failed", error);
     throw new Error("Failed to score interview");
