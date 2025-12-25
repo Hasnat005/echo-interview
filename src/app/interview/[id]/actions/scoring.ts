@@ -18,6 +18,11 @@ export async function scoreInterview(interviewId: string) {
     throw new Error("Interview id is required");
   }
 
+  const client = deepseekClient;
+  if (!client) {
+    throw new Error("AI scoring is unavailable: missing DeepSeek API key");
+  }
+
   const supabase = createSupabaseServerClient();
 
   try {
@@ -67,7 +72,7 @@ export async function scoreInterview(interviewId: string) {
 
       const userPrompt = `Question: ${question}\n Answer: ${row.response_text ?? ""}`;
 
-      const completion = await deepseekClient.chat.completions.create({
+      const completion = await client.chat.completions.create({
         model: "deepseek-chat",
         temperature: 0,
         messages: [
