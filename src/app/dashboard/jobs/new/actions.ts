@@ -34,17 +34,35 @@ export async function createJob(formData: FormData) {
     throw new Error("Organization is required to create a job");
   }
 
-  const { error: insertError } = await supabase.from("jobs").insert({
-    title,
-    description,
-    organization_id: profile.organization_id,
-  });
+  const { data: jobRow, error: insertError } = await supabase
+    .from("jobs")
+    .insert({
+      title,
+      description,
+      organization_id: profile.organization_id,
+    })
+    .select("id")
+    .single();
 
-  if (insertError) {
+  if (insertError || !jobRow?.id) {
     console.error("createJob: insert failed", insertError);
     throw new Error("Failed to create job");
   }
 
-  // Trigger question generation based on the job description.
-  await generateQuestions(description);
+  const questions = await generateQuestions(description);
+
+  const { error: questionsError } = await supabase.from("questions").insert(
+    questions.map((q) => ({
+      job_id: jobRow.id,
+      text: q.question,
+      difficulty: q.difficulty,
+    })),
+  );
+
+  if (questionsError) {
+    console.error("createJob: inserting questions failed", questionsError);
+    // Optional best-effort cleanup to avoid orphaned job
+    await supabase.from("jobs").delete().eq("id", jobRow.id);
+    throw new Error("Failed to create job questions");
+  }
 }
