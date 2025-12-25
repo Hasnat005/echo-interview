@@ -55,16 +55,18 @@ export default function InterviewClient({ interview, questions }: Props) {
         </header>
 
         {current ? (
-          <section className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-sm font-medium text-slate-700">Question {currentQuestionIndex + 1}</p>
-            <p className="text-base text-slate-900">{current.text}</p>
-            <p className="text-xs text-slate-500">Difficulty: {current.difficulty ?? "n/a"}</p>
+          <section className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-slate-700">Question {currentQuestionIndex + 1}</p>
+              <p className="text-2xl font-semibold text-slate-900 leading-tight">{current.text}</p>
+              <p className="text-xs text-slate-500">Difficulty: {current.difficulty ?? "n/a"}</p>
+            </div>
             <textarea
-              className="mt-2 w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
-              rows={4}
+              className="mt-2 w-full rounded-md border border-slate-200 px-3 py-3 text-base text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+              rows={8}
               value={responses[current.id] ?? ""}
               onChange={(e) => setResponse(current.id, e.target.value)}
-              placeholder="Your response..."
+              placeholder="Type your response here..."
             />
             <div className="flex items-center justify-between">
               <button
