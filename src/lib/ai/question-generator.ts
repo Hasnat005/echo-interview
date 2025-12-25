@@ -26,13 +26,15 @@ function stripCodeFences(payload: string): string {
 export async function generateQuestions(jobDescription: string): Promise<
   { question: string; difficulty: string }[]
 > {
-  if (!deepseekClient) {
+  const client = deepseekClient;
+
+  if (!client) {
     // Fallback when no API key is set
     return fallbackQuestions(jobDescription);
   }
 
   try {
-    const response = await deepseekClient.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: "deepseek-chat",
       messages: [
         {
