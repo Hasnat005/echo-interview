@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useInterviewStore } from "@/stores/interview-store";
 import type { InterviewWithQuestions } from "./page";
+import { submitInterview } from "./actions";
 
 type Props = {
   interview: InterviewWithQuestions;
@@ -17,12 +18,27 @@ export default function InterviewClient({ interview, questions }: Props) {
   const setCurrentQuestionIndex = useInterviewStore((state) => state.setCurrentQuestionIndex);
   const responses = useInterviewStore((state) => state.responses);
   const setResponse = useInterviewStore((state) => state.setResponse);
+  const [isSubmitting, startTransition] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     setQuestions(questions.map((q) => ({ question: q.text, difficulty: q.difficulty ?? undefined })));
   }, [questions, setQuestions]);
 
   const current = questions[currentQuestionIndex];
+
+  const handleSubmit = () => {
+    if (!current) return;
+    setSubmitError(null);
+    startTransition(async () => {
+      try {
+        await submitInterview(interview.id);
+      } catch (err) {
+        console.error(err);
+        setSubmitError("Failed to submit interview");
+      }
+    });
+  };
 
   return (
     <main className="mx-auto flex max-w-5xl gap-6 px-4 py-10 text-slate-900">
@@ -68,6 +84,7 @@ export default function InterviewClient({ interview, questions }: Props) {
               onChange={(e) => setResponse(current.id, e.target.value)}
               placeholder="Type your response here..."
             />
+            {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
             <div className="flex items-center justify-between">
               <button
                 type="button"
@@ -89,9 +106,11 @@ export default function InterviewClient({ interview, questions }: Props) {
               ) : (
                 <button
                   type="button"
-                  className="rounded-md border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-600"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="rounded-md border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  Submit
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               )}
             </div>
