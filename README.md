@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Echointerview SaaS Starter
 
-## Getting Started
+Next.js 14 App Router + TypeScript + Tailwind starter with Supabase auth/DB wiring, DeepSeek server helper, Zod, Zustand, and utility helpers.
 
-First, run the development server:
+## Setup
+
+1) Install deps (npm):
+
+```bash
+npm install
+```
+
+2) Copy environment template:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Fill `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `DEEPSEEK_API_KEY`.
+
+3) Run dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project bits
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Supabase clients: `src/lib/supabase/client.ts` (browser) and `src/lib/supabase/server.ts` (RSC/API with cookies/headers).
+- DeepSeek server helper: `src/lib/ai/deepseek.ts` (server-only).
+- Tailwind class helper: `src/lib/utils.ts` (`cn`).
+- Sample Zustand store: `src/store/useAppStore.ts`.
+- Sample Zod schema: `src/lib/schemas/example.ts`.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev` — start dev server
+- `npm run lint` — lint
+- `npm run build` — production build
+- `npm start` — run production build
