@@ -1,6 +1,15 @@
 import "server-only";
 import { deepseekClient } from "@/lib/ai/client";
 
+function stripCodeFences(payload: string): string {
+  const fence = /```[a-zA-Z]*\n([\s\S]*?)```/m;
+  const match = payload.match(fence);
+  if (match?.[1]) {
+    return match[1].trim();
+  }
+  return payload;
+}
+
 /**
  * Server-only helper to generate interview questions via DeepSeek chat model.
  * Expects the model to return a strict JSON array of { question, difficulty } objects.
@@ -22,8 +31,9 @@ export async function generateQuestions(jobDescription: string): Promise<
   const content = response.choices[0]?.message?.content ?? "";
 
   try {
-    const match = content.match(/[\[\s\S]*\]/);
-    const jsonText = match?.[0] ?? content;
+    const cleanedContent = stripCodeFences(content);
+    const match = cleanedContent.match(/[\[\s\S]*\]/);
+    const jsonText = match?.[0] ?? cleanedContent;
     const parsed = JSON.parse(jsonText) as { question: string; difficulty: string }[];
 
     const cleaned = Array.isArray(parsed)
