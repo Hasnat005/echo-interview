@@ -10,6 +10,8 @@ export type InterviewActions = {
   setQuestions: (questions: { question: string; difficulty?: string }[]) => void;
   setCurrentQuestionIndex: (index: number) => void;
   setResponse: (questionId: string, response: string) => void;
+  nextQuestion: () => void;
+  prevQuestion: () => void;
 };
 
 export const useInterviewStore = create<InterviewState & InterviewActions>((set) => ({
@@ -24,5 +26,13 @@ export const useInterviewStore = create<InterviewState & InterviewActions>((set)
         ...state.responses,
         [questionId]: response,
       },
+    })),
+  nextQuestion: () =>
+    set((state) => ({
+      currentQuestionIndex: Math.min(state.currentQuestionIndex + 1, Math.max(state.questions.length - 1, 0)),
+    })),
+  prevQuestion: () =>
+    set((state) => ({
+      currentQuestionIndex: Math.max(state.currentQuestionIndex - 1, 0),
     })),
 }));
