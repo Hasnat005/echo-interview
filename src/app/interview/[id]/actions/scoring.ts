@@ -35,7 +35,7 @@ export async function scoreInterview(interviewId: string) {
       throw new Error("No responses found for interview");
     }
 
-    const scored = [] as { questionId: string; score: number; feedback: string }[];
+    const scored = [] as { responseId: string; questionId: string; score: number; feedback: string }[];
 
     for (const row of data as ResponseRow[]) {
       const question = row.questions?.text;
@@ -74,10 +74,26 @@ export async function scoreInterview(interviewId: string) {
         throw new Error("DeepSeek score response missing required fields");
       }
 
-      scored.push({ questionId: row.question_id, score, feedback });
+      scored.push({ responseId: row.id, questionId: row.question_id, score, feedback });
     }
 
-    // TODO: persist `scored` results to the database and set overall score
+    // Update ai_feedback for each response row
+    const updates = scored.map((item) =>
+      supabase
+        .from("responses")
+        .update({ ai_feedback: { score: item.score, feedback: item.feedback } })
+        .eq("id", item.responseId),
+    );
+
+    const results = await Promise.all(updates);
+
+    const updateError = results.find((res) => res.error)?.error;
+    if (updateError) {
+      console.error("scoreInterview: failed to persist ai_feedback", updateError);
+      throw new Error("Failed to persist interview scores");
+    }
+
+    // TODO: compute and persist overall score on the interview record
   } catch (error) {
     console.error("scoreInterview failed", error);
     throw new Error("Failed to score interview");
