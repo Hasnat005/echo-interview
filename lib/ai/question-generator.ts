@@ -16,6 +16,14 @@ export async function generateQuestions(jobDescription: string): Promise<
   });
 
   const content = response.choices[0]?.message?.content ?? "";
-  const parsed = JSON.parse(content) as { question: string; difficulty: string }[];
-  return parsed;
+
+  try {
+    const match = content.match(/\[[\s\S]*\]/);
+    const jsonText = match?.[0] ?? content;
+    const parsed = JSON.parse(jsonText) as { question: string; difficulty: string }[];
+    return parsed;
+  } catch (error) {
+    console.error("Failed to parse DeepSeek JSON response", { error, content });
+    throw new Error("Failed to parse DeepSeek JSON response");
+  }
 }
