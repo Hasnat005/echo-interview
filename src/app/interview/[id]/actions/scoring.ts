@@ -37,7 +37,29 @@ export async function scoreInterview(interviewId: string) {
 
     const scored = [] as { responseId: string; questionId: string; score: number; feedback: string }[];
 
-    for (const row of data as ResponseRow[]) {
+    const rows: ResponseRow[] = (data ?? []).map((row: unknown) => {
+      const r = row as {
+        id?: unknown;
+        response_text?: unknown;
+        question_id?: unknown;
+        questions?: { id?: unknown; text?: unknown; difficulty?: unknown } | null;
+      };
+
+      return {
+        id: String(r.id),
+        response_text: (r.response_text as string | null | undefined) ?? null,
+        question_id: String(r.question_id),
+        questions: r.questions
+          ? {
+              id: String(r.questions.id),
+              text: String(r.questions.text),
+              difficulty: (r.questions.difficulty as string | null | undefined) ?? null,
+            }
+          : null,
+      };
+    });
+
+    for (const row of rows) {
       const question = row.questions?.text;
       if (!question) {
         throw new Error(`Missing question text for question ${row.question_id}`);

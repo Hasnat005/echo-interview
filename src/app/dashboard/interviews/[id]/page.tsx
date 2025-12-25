@@ -33,7 +33,32 @@ export default async function InterviewResultsPage({ params }: { params: { id: s
     notFound();
   }
 
-  const interview = data as InterviewWithResponses;
+  const interview: InterviewWithResponses = {
+    id: String(data.id),
+    status: String(data.status),
+    overall_score: data.overall_score ?? null,
+    responses: (data.responses ?? []).map((res: unknown) => {
+      const r = res as {
+        id?: unknown;
+        response_text?: unknown;
+        ai_feedback?: unknown;
+        questions?: { id?: unknown; text?: unknown; difficulty?: unknown } | null;
+      };
+
+      return {
+        id: String(r.id),
+        response_text: (r.response_text as string | null | undefined) ?? null,
+        ai_feedback: (r.ai_feedback as { score?: number; feedback?: string } | null | undefined) ?? null,
+        questions: r.questions
+          ? {
+              id: String(r.questions.id),
+              text: String(r.questions.text),
+              difficulty: (r.questions.difficulty as string | null | undefined) ?? null,
+            }
+          : null,
+      };
+    }),
+  };
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-10 text-slate-900">
