@@ -37,13 +37,19 @@ export default async function InterviewResultsPage({ params }: { params: { id: s
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-10 text-slate-900">
-      <header className="space-y-1">
-        <p className="text-xs uppercase tracking-wide text-slate-500">Interview</p>
-        <h1 className="text-2xl font-semibold">Interview {interview.id}</h1>
-        <p className="text-sm text-slate-600">Status: {interview.status}</p>
-        {interview.overall_score !== null ? (
-          <p className="text-sm text-slate-700">Overall score: {interview.overall_score}</p>
-        ) : null}
+      <header className="space-y-4">
+        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-gradient-to-r from-slate-900 to-slate-700 p-5 text-white shadow-md">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-slate-300">Overall Score</p>
+            <h1 className="text-4xl font-semibold leading-tight">Interview {interview.id}</h1>
+            <p className="text-sm text-slate-200">Status: {interview.status}</p>
+          </div>
+          {interview.overall_score !== null ? (
+            <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/30 bg-white/10 text-3xl font-bold">
+              {interview.overall_score}
+            </div>
+          ) : null}
+        </div>
       </header>
 
       <section className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
