@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export type InterviewState = {
   questions: { question: string; difficulty?: string }[];
@@ -14,25 +15,35 @@ export type InterviewActions = {
   prevQuestion: () => void;
 };
 
-export const useInterviewStore = create<InterviewState & InterviewActions>((set) => ({
-  questions: [],
-  currentQuestionIndex: 0,
-  responses: {},
-  setQuestions: (questions) => set({ questions, currentQuestionIndex: 0 }),
-  setCurrentQuestionIndex: (currentQuestionIndex) => set({ currentQuestionIndex }),
-  setResponse: (questionId, response) =>
-    set((state) => ({
-      responses: {
-        ...state.responses,
-        [questionId]: response,
-      },
-    })),
-  nextQuestion: () =>
-    set((state) => ({
-      currentQuestionIndex: Math.min(state.currentQuestionIndex + 1, Math.max(state.questions.length - 1, 0)),
-    })),
-  prevQuestion: () =>
-    set((state) => ({
-      currentQuestionIndex: Math.max(state.currentQuestionIndex - 1, 0),
-    })),
-}));
+export const useInterviewStore = create<InterviewState & InterviewActions>()(
+  persist(
+    (set) => ({
+      questions: [],
+      currentQuestionIndex: 0,
+      responses: {},
+      setQuestions: (questions) => set({ questions, currentQuestionIndex: 0 }),
+      setCurrentQuestionIndex: (currentQuestionIndex) => set({ currentQuestionIndex }),
+      setResponse: (questionId, response) =>
+        set((state) => ({
+          responses: {
+            ...state.responses,
+            [questionId]: response,
+          },
+        })),
+      nextQuestion: () =>
+        set((state) => ({
+          currentQuestionIndex: Math.min(
+            state.currentQuestionIndex + 1,
+            Math.max(state.questions.length - 1, 0),
+          ),
+        })),
+      prevQuestion: () =>
+        set((state) => ({
+          currentQuestionIndex: Math.max(state.currentQuestionIndex - 1, 0),
+        })),
+    }),
+    {
+      name: "interview-store",
+    },
+  ),
+);
