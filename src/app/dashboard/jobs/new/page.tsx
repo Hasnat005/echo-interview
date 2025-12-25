@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { cn } from "@/lib/utils";
+import { createJob } from "./actions";
 
 export default function NewJobPage() {
   const [title, setTitle] = useState("");
@@ -17,8 +18,11 @@ export default function NewJobPage() {
       return;
     }
 
-    // TODO: integrate with backend to persist job
-    console.log({ title: title.trim(), description: description.trim() });
+    // Server action invocation
+    createJob(new FormData(event.currentTarget)).catch((err) => {
+      console.error(err);
+      setErrors("Failed to create job. Please try again.");
+    });
   };
 
   return (
