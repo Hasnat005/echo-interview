@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateQuestions } from "@/lib/ai/question-generator";
+import { redirect } from "next/navigation";
 
 export async function createJob(formData: FormData) {
   const title = formData.get("title")?.toString().trim();
@@ -65,4 +66,6 @@ export async function createJob(formData: FormData) {
     await supabase.from("jobs").delete().eq("id", jobRow.id);
     throw new Error("Failed to create job questions");
   }
+
+  redirect("/dashboard/jobs");
 }
